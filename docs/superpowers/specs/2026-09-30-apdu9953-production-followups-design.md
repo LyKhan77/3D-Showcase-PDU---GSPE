@@ -85,7 +85,7 @@ No change. `references/` and `previews/socket_ref_large.png` stay in `.gitignore
 
 - **README.md** at the repo root, under 80 lines: what the project is, the live URL, folder map, the `npm run` commands in `scripts/`, Vercel settings (Root Directory `showcase`, Framework Preset Other, no build command), the LFS note (`git lfs install` before cloning), that `references/` is intentionally absent, the disclaimer, and two caveats: `.mcp.json` and the CAD scripts contain absolute paths for this machine.
 - **Real-device check** (owner runs it; the agent provides the checklist and records results): Safari on macOS, Safari on iOS, Chrome on Android. On each: Load 3D, Assembled/Exploded, one stage button, one hotspot tip, one layer toggle. Two 1.2 M-vertex models are heavy on iOS memory, so note any reload or crash.
-- **Local cleanup, only after T1 and only with the owner's yes:** `temp/` (106 MB, ignored; T1 recreates its staging files, so keep it until T1 is done) and the root `node_modules/` (18 MB, ignored, no `package.json`). Never touch `references/`.
+- **Local cleanup, only after T1 and only with the owner's yes:** `temp/blender_staging_apdu9953/` and `temp/__pycache__/` (part of the 106 MB in `temp/`; T1 recreates the staging files, so keep them until T1 is done) and the root `node_modules/` (18 MB, ignored, no `package.json`). Never delete `temp/prompt/`, which holds the handoff prompts, and never touch `references/`.
 
 ## Verification commands
 
