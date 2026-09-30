@@ -136,6 +136,7 @@ references:
 
 ### Tahap 6: Web Delivery (`showcase/`)
 - GLB di `exports/` adalah **master** dan tidak diubah. `showcase/` memakai salinan Draco yang jauh lebih kecil.
+- Kalau sumber CAD berubah, bangun ulang master dulu (FreeCAD, lalu Blender lewat binary `Blender.app`, bukan shim `/opt/homebrew/bin/blender`). Perintah lengkapnya ada di `README.md`, bagian "Rebuilding the GLB masters".
 - Jalankan dari folder `scripts/`:
 
 ```bash

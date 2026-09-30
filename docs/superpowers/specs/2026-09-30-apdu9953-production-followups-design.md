@@ -94,3 +94,7 @@ From `scripts/`: `npm run verify:web`, `npm run test:web`, `npm run audit:web`, 
 ## Out of scope
 
 Custom domain, analytics, LOD variants, CI, and self-hosting anything else. If a custom domain is added later, update `og:image`, `og:url` and `canonical` in all pages.
+
+## Erratum (2026-09-30)
+
+The Blender command in "Verification commands" is wrong: `/opt/homebrew/bin/blender` cannot run scripts here (`No module named '_bpy_types'`). Use `/Applications/Blender.app/Contents/MacOS/Blender -b --python-exit-code 1 --python <script>`. A headless session also starts with `Camera`, `Cube` and `Light`, so the builder now resets to an empty scene in background mode.

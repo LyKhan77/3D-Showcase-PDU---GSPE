@@ -191,3 +191,7 @@ Show `du -sh temp/blender_staging_apdu9953 temp/__pycache__ node_modules`. If th
 
 - [ ] **Step 5: Commit, push and run the final suite**
 `git add README.md && git commit -m "docs: add README"`, `git push`. Then, from `scripts/`: `npm run verify:web`, `npm run test:web`, `npm run audit:web`, and the last two again with `BASE_URL=https://showcase3dpdu-gspe.vercel.app/`. From the repo root: `git status --short` is empty and `git lfs ls-files` lists nine files. Report each result with its output, not from memory.
+
+## Erratum (2026-09-30)
+
+Wherever this plan or the spec says `/opt/homebrew/bin/blender`, use `/Applications/Blender.app/Contents/MacOS/Blender` instead. See the spec's erratum.

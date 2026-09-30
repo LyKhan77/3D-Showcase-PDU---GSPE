@@ -13,6 +13,18 @@ Live showcase: https://showcase3dpdu-gspe.vercel.app/
 - `specs/` and `libraries/` — parameter and standard references.
 - `references/` is intentionally absent from Git and remains unpublished.
 
+## Rebuilding the GLB masters
+
+Only needed when the CAD sources change. Run from the repo root, in this order:
+
+```sh
+/opt/homebrew/bin/freecadcmd cad/apdu9953/freecad/export_mesh_for_blender.py
+/Applications/Blender.app/Contents/MacOS/Blender -b --python-exit-code 1 --python cad/apdu9953/blender/verify_builder_dry_run.py
+/Applications/Blender.app/Contents/MacOS/Blender -b --python-exit-code 1 --python cad/apdu9953/blender/build_blender_scene.py
+```
+
+The first command regenerates the mesh staging in `temp/`. The second is an optional dry run into `temp/builder-dry-run/`. The third writes the masters to `exports/apdu9953/glb/` and the `.blend` files to `cad/apdu9953/blender/`. Use the app binary: `/opt/homebrew/bin/blender` fails with `No module named '_bpy_types'`. Then run the web commands below. Each new master version adds about 100 MB to GitHub LFS storage; the free quota is 1 GB of storage and 1 GB of bandwidth per month.
+
 ## Web commands
 
 Run from `scripts/`:
