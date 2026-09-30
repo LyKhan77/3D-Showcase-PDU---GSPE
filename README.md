@@ -36,4 +36,4 @@ Vercel uses Root Directory `showcase`, Framework Preset `Other`, no build comman
 
 The pages include this notice: “NetShelter, NMC and other product names are trademarks of their respective owners. This is an independent 3D study and is not affiliated with or endorsed by them.”
 
-The project MCP configuration and CAD scripts contain absolute paths for the author’s machine. Update those paths before moving the pipeline to another workstation.
+`.mcp.json` and the CAD scripts contain absolute paths for the author’s machine. Update those paths before moving the pipeline to another workstation.
