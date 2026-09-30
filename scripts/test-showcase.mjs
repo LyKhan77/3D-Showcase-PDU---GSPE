@@ -43,11 +43,32 @@ async function expectLoad(page, viewerSel, label, action, file) {
   check(ok && src.endsWith(file), `${label} -> ${file}`);
 }
 
+async function checkDisplayGlass(page, viewerSel, label) {
+  const glass = await page.evaluate(s => {
+    const viewer = document.querySelector(s);
+    const material = viewer.model?.materials?.find(item => item.name === 'nmc3__nmc3_display__mat_glass_clear');
+    if (!material) return null;
+    return {
+      alphaMode: material.getAlphaMode?.(),
+      alpha: material.pbrMetallicRoughness.baseColorFactor?.[3],
+    };
+  }, viewerSel);
+  check(glass && glass.alphaMode === 'BLEND' && glass.alpha < 1, `${label}: display glass remains translucent (${glass ? `${glass.alphaMode}, alpha ${glass.alpha}` : 'missing'})`);
+}
+
+async function glassAlpha(page) {
+  return page.evaluate(() => {
+    const material = document.querySelector('model-viewer[data-component-viewer]').model?.materials?.find(item => item.name === 'nmc3__nmc3_display__mat_glass_clear');
+    return material?.pbrMetallicRoughness.baseColorFactor?.[3] ?? null;
+  });
+}
+
 for (const [name, viewport] of [['desktop', { width: 1440, height: 900 }], ['phone', { width: 390, height: 844 }]]) {
   const sel = '#interactive-inspection', vsel = `${sel} model-viewer`;
   const page = await open(viewport, 'index.html', vsel, name);
   await page.locator(`${sel} [data-load-3d]`).scrollIntoViewIfNeeded();
   await expectLoad(page, vsel, `${name}: load button`, () => page.locator(`${sel} [data-load-3d]`).click(), ASSEMBLED);
+  await checkDisplayGlass(page, vsel, `${name}: assembled model`);
   for (const [mode, file] of [['exploded', EXPLODED], ['assembled', ASSEMBLED], ['exploded', EXPLODED]]) {
     await expectLoad(page, vsel, `${name}: ${mode} button`, () => page.locator(`${sel} [data-mode="${mode}"]`).click(), file);
   }
@@ -86,6 +107,15 @@ for (const [file, first, others] of [['nmc3', ASSEMBLED, [['exploded', EXPLODED]
   const vsel = 'model-viewer[data-component-viewer]';
   const page = await open({ width: 1440, height: 900 }, `components/${file}.html`, vsel, file);
   await expectLoad(page, vsel, `${file}: load button`, () => page.locator('[data-load-3d]').click(), first);
+  await checkDisplayGlass(page, vsel, `${file}: initial model`);
+  if (file === 'nmc3') {
+    const before = await glassAlpha(page);
+    await page.locator('[data-layer="nmc3"]').uncheck();
+    check(await glassAlpha(page) === 0, `${file}: hidden layer has zero glass alpha`);
+    await page.locator('[data-layer="nmc3"]').check();
+    const after = await glassAlpha(page);
+    check(before !== null && before > 0 && before < 1 && after === before, `${file}: layer toggle restores glass alpha (${before} -> ${after})`);
+  }
   for (const [mode, f] of others) await expectLoad(page, vsel, `${file}: ${mode} button`, () => page.locator(`[data-mode="${mode}"]`).click(), f);
   if (file === 'nmc3') { // ARIA tabs: arrow key moves selection and shows the matching panel
     await page.locator('#tab-rj45').focus();

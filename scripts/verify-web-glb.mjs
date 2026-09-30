@@ -79,8 +79,13 @@ if (process.argv.includes('--masters')) {
 
 let bad = 0;
 for (const n of ['gspe_pdu_apdu9953', 'gspe_pdu_apdu9953_exploded']) {
-  const a = stats(await io.read(`../exports/apdu9953/glb/${n}.glb`));
-  const b = stats(await io.read(`../showcase/${n}.glb`));
+  const master = await io.read(`../exports/apdu9953/glb/${n}.glb`);
+  const web = await io.read(`../showcase/${n}.glb`);
+  const violations = [...checkMaterials(master, `${n} master`), ...checkMaterials(web, `${n} web`)];
+  violations.forEach(v => console.log(`VIOLATION ${v}`));
+  bad += violations.length;
+  const a = stats(master);
+  const b = stats(web);
   let worst = 0, worstArea = 0;
   for (const [name, x] of a) {
     const y = b.get(name);

@@ -143,6 +143,7 @@ npm install            # sekali saja
 npm run build:web      # exports/ -> showcase/*.glb (Draco, posisi 16-bit, normal 12-bit)
 npm run verify:web     # gagal jika jumlah segitiga, nama mesh/material, atau bbox menyimpang dari master
 npm run posters        # poster JPEG di showcase/assets/posters/
+sh make-og-image.sh    # social preview NMC3 1200x630 (dari folder scripts/)
 npm run test:web       # smoke test viewer: ganti Assembled/Exploded, stage, tip hotspot (desktop + ponsel)
 npm run audit:web      # cek link, meta, aksesibilitas (axe), overflow, ukuran unduhan
 BASE_URL=https://showcase3dpdu-gspe.vercel.app/ npm run test:web   # jalankan tes/audit terhadap situs yang sudah live
