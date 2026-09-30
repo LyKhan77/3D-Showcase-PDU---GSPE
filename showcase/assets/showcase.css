@@ -131,6 +131,7 @@ model-viewer:not(:defined) .hotspot { display: none; }
 .footer { background: var(--ink); color: #fff; padding: 48px 24px; }
 .footer .wordmark { color: var(--gspe-cream); }
 .footer p { color: #c6c6c6; font-size: 14px; }
+.footer .legal { margin-top: 16px; max-width: 70ch; color: #8d8d8d; font-size: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .loading { min-height: 160px; display: grid; place-items: center; color: #c6d5dc; }
 

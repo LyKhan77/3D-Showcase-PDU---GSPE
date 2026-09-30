@@ -24,6 +24,7 @@ for (const [device, viewport] of [['desktop', { width: 1440, height: 900 }], ['p
       icon: !!document.querySelector('link[rel~=icon]'),
       h1: document.querySelectorAll('h1').length,
       noAlt: [...document.querySelectorAll('img:not([alt])')].length,
+      disclaimer: document.body.innerText.includes('independent 3D study'),
       overflowX: document.documentElement.scrollWidth - innerWidth,
       links: [...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href')).filter(h => !/^(https?:|mailto:)/.test(h)),
     }));
@@ -48,9 +49,10 @@ for (const [device, viewport] of [['desktop', { width: 1440, height: 900 }], ['p
   }
 }
 console.log('\n== head metadata (per page) ==');
-for (const [p, i] of problems) console.log(p.padEnd(38), `description:${i.description} og:image:${i.og} favicon:${i.icon} h1:${i.h1} img-without-alt:${i.noAlt}`);
+for (const [p, i] of problems) console.log(p.padEnd(38), `description:${i.description} og:image:${i.og} favicon:${i.icon} h1:${i.h1} img-without-alt:${i.noAlt} disclaimer:${i.disclaimer}`);
 console.log('\n== axe violations ==');
 if (!axeRules.size) console.log('none');
 for (const [k, e] of axeRules) console.log(`${k}: ${e.help} | ${e.nodes} nodes on ${e.where.size} page-views | e.g. ${e.sample}`);
+if (problems.some(([, i]) => !i.disclaimer)) process.exitCode = 1;
 await browser.close();
 close();
