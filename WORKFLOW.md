@@ -148,6 +148,7 @@ npm run audit:web      # cek link, meta, aksesibilitas (axe), overflow, ukuran u
 BASE_URL=https://showcase3dpdu-gspe.vercel.app/ npm run test:web   # jalankan tes/audit terhadap situs yang sudah live
 ```
 
+- Situs tidak memuat apa pun dari origin lain: font Plex, model-viewer, dan decoder Draco disalin ke `showcase/assets/vendor/` (`npm run vendor`, versi dan lisensi ada di `vendor/README.md`). `showcase/vercel.json` memberlakukan Content-Security-Policy yang memblokir sumber luar. Tambah CDN baru = ubah CSP di file itu.
 - Halaman memuat model hanya setelah pengunjung menekan **Load interactive 3D model** (`reveal="manual"`). Model exploded baru diunduh saat diminta.
 - Jalankan ulang ketiga langkah setiap kali GLB master di `exports/` berubah.
 

@@ -3,7 +3,7 @@
 import { chromium } from 'playwright';
 import { startServer } from './serve.mjs';
 
-const pages = ['index.html', 'components/index.html', ...['housing', 'mounting', 'power', 'breakers', 'outlet-banks', 'nmc3', 'internal-busbars-pcb'].map(n => `components/${n}.html`)];
+const pages = ['index.html', 'components/index.html', '404.html', ...['housing', 'mounting', 'power', 'breakers', 'outlet-banks', 'nmc3', 'internal-busbars-pcb'].map(n => `components/${n}.html`)];
 // BASE_URL=https://example.vercel.app/ runs against a deployed site instead of the local folder.
 const { base, close } = process.env.BASE_URL ? { base: process.env.BASE_URL.replace(/\/?$/, '/'), close() {} } : await startServer();
 const browser = await chromium.launch({ channel: 'chromium', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
@@ -12,7 +12,7 @@ const axeRules = new Map(), problems = [];
 
 for (const [device, viewport] of [['desktop', { width: 1440, height: 900 }], ['phone', { width: 390, height: 844 }]]) {
   for (const path of pages) {
-    const page = await browser.newPage({ viewport });
+    const page = await browser.newPage({ viewport, bypassCSP: true }); // axe comes from a CDN; CSP is covered by test-showcase.mjs
     const bytes = new Map(), logs = [];
     page.on('response', async r => { try { bytes.set(r.url(), (await r.body()).length); } catch {} });
     page.on('console', m => { if (['error', 'warning'].includes(m.type()) && !m.location().url.includes('favicon')) logs.push(`${m.type()}: ${m.text().slice(0, 100)}`); });

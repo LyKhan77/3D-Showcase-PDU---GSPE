@@ -28,10 +28,14 @@ const viewerState = new WeakMap();
 function stateFor(viewer) { if (!viewerState.has(viewer)) viewerState.set(viewer, { pending: null, source: null, original: new Map() }); return viewerState.get(viewer); }
 // The model-viewer library (about 900 KB) and the models are fetched when the visitor first asks for 3D, not on page load.
 // Hovering or focusing a load button warms the library up so the click feels instant.
-const MODEL_VIEWER_URL = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js';
+const MODEL_VIEWER_URL = new URL('./vendor/model-viewer-3.5.0.min.js', import.meta.url).href;
+const DRACO_URL = new URL('./vendor/draco-1.5.6/', import.meta.url).href; // model-viewer would otherwise fetch it from gstatic
 let libraryPromise;
 function loadLibrary() {
-  return libraryPromise ??= import(MODEL_VIEWER_URL).then(() => customElements.whenDefined('model-viewer')).catch(error => { libraryPromise = null; throw error; });
+  return libraryPromise ??= import(MODEL_VIEWER_URL)
+    .then(() => customElements.whenDefined('model-viewer'))
+    .then(() => { customElements.get('model-viewer').dracoDecoderLocation = DRACO_URL; }) // before the first model loads
+    .catch(error => { libraryPromise = null; throw error; });
 }
 
 // reveal="manual" holds a model back until dismissPoster(). model-viewer forgets that request when it processes a new `src`

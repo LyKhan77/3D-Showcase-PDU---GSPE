@@ -8,12 +8,15 @@
     "verify:web": "node verify-web-glb.mjs",
     "posters": "node make-posters.mjs",
     "test:web": "node test-showcase.mjs",
-    "audit:web": "node audit-showcase.mjs"
+    "audit:web": "node audit-showcase.mjs",
+    "vendor": "node vendor-assets.mjs"
   },
   "devDependencies": {
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "@gltf-transform/cli": "^4.5.0",
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/extensions": "^4.5.0",
+    "@google/model-viewer": "3.5.0",
     "draco3dgltf": "^1.5.7",
     "playwright": "^1.63.0"
   }

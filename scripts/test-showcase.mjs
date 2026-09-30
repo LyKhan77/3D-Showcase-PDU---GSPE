@@ -24,6 +24,15 @@ async function open(viewport, path, viewerSel, label) {
   return page;
 }
 
+
+// Everything must come from our own origin (CSP would also block it), and the Plex font must be ours.
+async function checkSelfContained(page, label) {
+  const external = page.requests.filter(u => !u.startsWith(base) && !/^(data|blob):/.test(u));
+  check(external.length === 0, `${label}: nothing loaded from other origins${external.length ? ' -> ' + external[0] : ''}`);
+  const weights = await page.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter(f => f.family.includes('IBM Plex Sans') && f.status === 'loaded').length; });
+  check(weights >= 2, `${label}: self-hosted Plex font loaded (${weights} weights)`);
+}
+
 // Runs `action`, then requires a new `load` event and the expected src.
 async function expectLoad(page, viewerSel, label, action, file) {
   const before = await page.evaluate(() => window.__loads);
@@ -67,6 +76,7 @@ for (const [name, viewport] of [['desktop', { width: 1440, height: 900 }], ['pho
     const inside = box.shown && box.c.left >= box.v.left - 1 && box.c.right <= box.v.right + 1 && box.c.top >= box.v.top - 1 && box.c.bottom <= box.v.bottom + 1;
     check(inside, `${name}: ${slot} tip inside viewer (card ${Math.round(box.c.left)},${Math.round(box.c.top)} ${Math.round(box.c.width)}x${Math.round(box.c.height)} in viewer ${Math.round(box.v.left)},${Math.round(box.v.top)} ${Math.round(box.v.width)}x${Math.round(box.v.height)})`);
   }
+  await checkSelfContained(page, name);
   check(page.errors.length === 0, `${name}: no console errors${page.errors.length ? ' -> ' + page.errors[0] : ''}`);
   await page.close();
 }
@@ -83,6 +93,7 @@ for (const [file, first, others] of [['nmc3', ASSEMBLED, [['exploded', EXPLODED]
     const tabs = await page.evaluate(() => ({ selected: document.querySelector('#tab-usb-a').getAttribute('aria-selected'), panelHidden: document.querySelector('#panel-usb-a').hidden, oldHidden: document.querySelector('#panel-rj45').hidden, focused: document.activeElement.id }));
     check(tabs.selected === 'true' && !tabs.panelHidden && tabs.oldHidden && tabs.focused === 'tab-usb-a', `${file}: arrow key selects next tab`);
   }
+  await checkSelfContained(page, file);
   check(page.errors.length === 0, `${file}: no console errors${page.errors.length ? ' -> ' + page.errors[0] : ''}`);
   await page.close();
 }
