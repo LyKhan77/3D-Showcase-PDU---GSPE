@@ -144,26 +144,21 @@ PBR_SPECS = {
     },
 }
 
-# These four source groups retain their established presentation material.
-# The FreeCAD nearest-colour fallback can otherwise move them into a nearby
-# palette; import aliases merge those OBJ groups back into the legacy target.
-IMPORT_ALIASES = {
-    ("internal", "nmc3_pcb", "mat_polyamide_dark"): "mat_chassis_powdercoat",
-    ("nmc3", "nmc3_console", "mat_polyamide_dark"): "mat_chassis_powdercoat",
-    ("nmc3", "nmc3_usbhost", "mat_polyamide_dark"): "mat_chassis_powdercoat",
-    ("outlet_banks", "outlets", "mat_led_white"): "mat_gspe_cream",
-}
-
 def clear_scene():
-    # Keep the running MCP addon enabled when rebuilding through Blender GUI.
+    # Preserve unrelated work and keep the running MCP addon enabled.
+    subsystem_ids = {gid for gid, _ in SUBSYSTEM_LABELS}
     for obj in list(bpy.data.objects):
-        bpy.data.objects.remove(obj, do_unlink=True)
-    for c in list(bpy.data.collections):
-        bpy.data.collections.remove(c)
+        if obj.name.startswith("LAYER_") or obj.name in subsystem_ids:
+            bpy.data.objects.remove(obj, do_unlink=True)
+    for collection in list(bpy.data.collections):
+        if collection.name.startswith("GSPE_PDU_"):
+            bpy.data.collections.remove(collection)
     for mesh in list(bpy.data.meshes):
-        bpy.data.meshes.remove(mesh)
+        if mesh.users == 0 and "__mat_" in mesh.name:
+            bpy.data.meshes.remove(mesh)
     for material in list(bpy.data.materials):
-        bpy.data.materials.remove(material)
+        if material.users == 0 and (material.name.startswith("mat_") or "__mat_" in material.name):
+            bpy.data.materials.remove(material)
 
 def create_pbr_material(name, spec):
     mat = bpy.data.materials.new(name=name)
@@ -204,12 +199,11 @@ def build_scene_for_mode(mode_name="assembled"):
     print(f"\n==========================================")
     print(f"BUILDING BLENDER SCENE: {mode_name.upper()}")
     print(f"==========================================")
-    clear_scene()
-
     staging_dir = os.path.join(STAGING_BASE, mode_name)
     if not os.path.exists(staging_dir):
         print(f"Error: {staging_dir} does not exist!")
-        return
+        raise FileNotFoundError(staging_dir)
+    clear_scene()
 
     # Root collection
     col_root = bpy.data.collections.new(f"GSPE_PDU_{mode_name.upper()}")
@@ -233,14 +227,12 @@ def build_scene_for_mode(mode_name="assembled"):
         group_empties[gid] = emp
 
     imported_count = 0
-    grouped_objects = {}
     # Impor semua file OBJ yang ada di staging_dir
     for fname in sorted(os.listdir(staging_dir)):
         if not fname.endswith(".obj") or "__" not in fname:
             continue
 
-        layer, role, source_mat_id = fname[:-4].split("__", 2)
-        mat_id = IMPORT_ALIASES.get((layer, role, source_mat_id), source_mat_id)
+        layer, role, mat_id = fname[:-4].split("__", 2)
         obj_path = os.path.join(staging_dir, fname)
         if os.path.getsize(obj_path) == 0:
             continue
@@ -250,7 +242,7 @@ def build_scene_for_mode(mode_name="assembled"):
             o.select_set(False)
 
         bpy.ops.wm.obj_import(filepath=obj_path)
-        sel = bpy.context.selected_objects
+        sel = list(bpy.context.selected_objects)
         if not sel:
             continue
 
@@ -261,7 +253,8 @@ def build_scene_for_mode(mode_name="assembled"):
         else:
             target_obj = sel[0]
 
-        target_obj.name = f"LAYER_{layer}__ROLE_{role}__MAT_{mat_id}__PART_{imported_count}"
+        target_obj.name = f"LAYER_{layer}__ROLE_{role}__MAT_{mat_id}"
+        target_obj.data.name = fname[:-4]
         # Pindahkan ke root collection
         for c in list(target_obj.users_collection):
             c.objects.unlink(target_obj)
@@ -287,24 +280,7 @@ def build_scene_for_mode(mode_name="assembled"):
         if layer in group_empties:
             target_obj.parent = group_empties[layer]
 
-        grouped_objects.setdefault((layer, role, mat_id), []).append(target_obj)
         imported_count += 1
-
-    # Merge aliased source groups with their established target group so each
-    # exported mesh has one stable material-qualified name.
-    for (layer, role, mat_id), objects in grouped_objects.items():
-        if not objects:
-            continue
-        for obj in bpy.context.selected_objects:
-            obj.select_set(False)
-        for obj in objects:
-            obj.select_set(True)
-        bpy.context.view_layer.objects.active = objects[0]
-        if len(objects) > 1:
-            bpy.ops.object.join()
-        target_obj = objects[0]
-        target_obj.name = f"LAYER_{layer}__ROLE_{role}__MAT_{mat_id}"
-        target_obj.data.name = f"{layer}__{role}__{mat_id}"
 
     print(f"Total {imported_count} meshes linked across 7 subsystems.")
 
@@ -313,12 +289,18 @@ def build_scene_for_mode(mode_name="assembled"):
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
     print(f"Saved .blend: {blend_path} ({os.path.getsize(blend_path)/1024:.1f} KB)")
 
+    # Export only this generated model, even if the GUI scene has other work.
+    for obj in bpy.context.selected_objects:
+        obj.select_set(False)
+    for obj in col_root.objects:
+        obj.select_set(True)
+
     # Ekspor GLB
     glb_path = os.path.join(EXPORT_DIR, f"gspe_pdu_apdu9953{'_exploded' if mode_name=='exploded' else ''}.glb")
     bpy.ops.export_scene.gltf(
         filepath=glb_path,
         export_format="GLB",
-        use_selection=False,
+        use_selection=True,
         export_apply=True,
         export_yup=True,
         export_materials="EXPORT",
