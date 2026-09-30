@@ -4,7 +4,8 @@
 import { chromium } from 'playwright';
 import { startServer } from './serve.mjs';
 
-const { base, close } = await startServer();
+// BASE_URL=https://example.vercel.app/ runs against a deployed site instead of the local folder.
+const { base, close } = process.env.BASE_URL ? { base: process.env.BASE_URL.replace(/\/?$/, '/'), close() {} } : await startServer();
 const browser = await chromium.launch({ channel: 'chromium', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
 const failures = [];
 const check = (ok, msg) => { console.log(ok ? 'ok  ' : 'FAIL', msg); if (!ok) failures.push(msg); };

@@ -4,7 +4,8 @@ import { chromium } from 'playwright';
 import { startServer } from './serve.mjs';
 
 const pages = ['index.html', 'components/index.html', ...['housing', 'mounting', 'power', 'breakers', 'outlet-banks', 'nmc3', 'internal-busbars-pcb'].map(n => `components/${n}.html`)];
-const { base, close } = await startServer();
+// BASE_URL=https://example.vercel.app/ runs against a deployed site instead of the local folder.
+const { base, close } = process.env.BASE_URL ? { base: process.env.BASE_URL.replace(/\/?$/, '/'), close() {} } : await startServer();
 const browser = await chromium.launch({ channel: 'chromium', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
 const kb = n => `${(n / 1024).toFixed(0)} KB`;
 const axeRules = new Map(), problems = [];

@@ -145,6 +145,7 @@ npm run verify:web     # gagal jika jumlah segitiga, nama mesh/material, atau bb
 npm run posters        # poster JPEG di showcase/assets/posters/
 npm run test:web       # smoke test viewer: ganti Assembled/Exploded, stage, tip hotspot (desktop + ponsel)
 npm run audit:web      # cek link, meta, aksesibilitas (axe), overflow, ukuran unduhan
+BASE_URL=https://showcase3dpdu-gspe.vercel.app/ npm run test:web   # jalankan tes/audit terhadap situs yang sudah live
 ```
 
 - Halaman memuat model hanya setelah pengunjung menekan **Load interactive 3D model** (`reveal="manual"`). Model exploded baru diunduh saat diminta.
