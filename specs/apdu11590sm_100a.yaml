@@ -1,0 +1,89 @@
+# Specification: APC NetShelter Rack PDU Advanced 100A
+# Extracted from Sketchfab reference (ID: 098fa4dbd5c54767b2443918ffc51405)
+# Official Part Number: APDU11590SM
+
+asset_id: netshelter-pdu-advanced-100a
+model_number: APDU11590SM
+manufacturer: "Schneider Electric / APC"
+series: "NetShelter Rack PDU Advanced (11K Series)"
+form_factor: 0U_vertical
+units: mm
+
+dimensions:
+  height: 2030.0
+  width: 85.0
+  depth: 85.0
+  sheet_thickness: 1.5
+  corner_fillet_radius: 2.0
+
+electrical:
+  input:
+    voltage: 415.0
+    phases: 3
+    current_rating_amps: 100
+    frequency_hz: [50, 60]
+    apparent_power_kva: 69.0
+    cord_entry: top
+    cord_diameter: 28.0
+    cord_length_nominal: 1800.0
+    connector_type: "IEC 60309 100A 3P+N+PE"
+  
+  circuit_protection:
+    breaker_count: 6
+    breaker_type: hydraulic_magnetic
+    rating_amps: 20.0
+    compartment_position: middle
+    window_type: transparent_hinged_cover
+
+outlets:
+  total_count: 48
+  banks: 6
+  outlets_per_bank: 8
+  outlet_types:
+    - type: combo_4_in_1
+      standard: "C13/C15/C19/C21 universal"
+      count: 24
+      individual_led: true
+    - type: standard_c13_c15
+      standard: "IEC C13/C15"
+      count: 24
+      individual_led: true
+  pitch_between_outlets: 28.5
+  pitch_between_banks: 52.0
+
+management_interface:
+  controller: "Network Management Card 3 (NMC3) - Live Swappable"
+  display:
+    type: color_graphic_lcd
+    dimensions: [45.0, 30.0]
+    controls: 4_way_navigation_buttons
+  ports:
+    - type: RJ45_gigabit_ethernet
+      count: 2
+      purpose: daisy_chain_and_sharing
+    - type: usb_type_a
+      count: 1
+    - type: rj45_sensor
+      count: 2
+      purpose: temp_humidity_probes
+
+mechanical_mounting:
+  method: toolless_mounting_pegs
+  peg_diameter_head: 12.0
+  peg_diameter_neck: 6.0
+  peg_height: 8.0
+  peg_spacing_z: 1832.0
+  alternate_mounting: bracket_flange_top_bottom
+
+materials_and_finish:
+  chassis: "Cold Rolled Steel (SPCC) or Extruded Aluminum"
+  coating: "Powder-coated Matte Black (RAL 9005)"
+  roughness: 0.65
+  metallic: 0.05
+  accent_color: "Schneider Electric Green (#3DCD58)"
+  outlet_housing: "Black Flame Retardant Thermoplastic (UL94 V-0)"
+
+references:
+  sketchfab_url: "https://sketchfab.com/3d-models/netshelter-rack-pdu-advanced-100a-098fa4dbd5c54767b2443918ffc51405"
+  image: "references/images/netshelter_pdu_advanced_100a.jpg"
+  official_site: "https://www.apc.com/us/en/campaign/pdu-advanced-for-server-racks.jsp"

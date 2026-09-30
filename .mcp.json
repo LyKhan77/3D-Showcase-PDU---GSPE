@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "openscad": {
+      "command": "/opt/homebrew/bin/uvx",
+      "args": [
+        "openscad-mcp"
+      ],
+      "env": {
+        "OPENSCAD_PATH": "/opt/homebrew/bin/openscad"
+      }
+    },
+    "freecad": {
+      "command": "/opt/homebrew/bin/uvx",
+      "args": [
+        "freecad-mcp",
+        "--only-text-feedback"
+      ],
+      "env": {
+        "FREECADCMD": "/opt/homebrew/bin/freecadcmd"
+      }
+    },
+    "blender": {
+      "command": "/opt/homebrew/bin/uvx",
+      "args": [
+        "mcp-for-blender"
+      ],
+      "env": {
+        "BLENDER_HOST": "localhost",
+        "BLENDER_PORT": "9876"
+      }
+    }
+  }
+}

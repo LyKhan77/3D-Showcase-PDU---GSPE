@@ -1,0 +1,42 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# CAD & 3D Auto-backups
+*.FCBak
+*.blend1
+*.blend2
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dependencies & tool caches
+node_modules/
+.firecrawl/
+.playwright-mcp/
+.codex/
+.agents/
+.pi/
+.superpowers/
+
+# Local Claude Code permissions (per machine)
+.claude/settings.local.json
+
+# Secrets and Vercel CLI link
+.env
+.env.*
+.vercel/
+
+# Logs
+*.log
+
+# Temporary and build outputs
+temp/
+output/
+
+# Third-party reference material (manufacturer photos, Sketchfab captures and textures).
+# Not published: check the licences first, then remove these lines to track them.
+references/
+previews/socket_ref_large.png

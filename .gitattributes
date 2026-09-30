@@ -1,0 +1,4 @@
+exports/**/*.step filter=lfs diff=lfs merge=lfs -text
+exports/**/*.glb filter=lfs diff=lfs merge=lfs -text
+exports/**/*.FCStd filter=lfs diff=lfs merge=lfs -text
+cad/**/*.blend filter=lfs diff=lfs merge=lfs -text

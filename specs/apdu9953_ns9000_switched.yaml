@@ -1,0 +1,144 @@
+# ==============================================================================
+# GSPE NetShelter 9000 Series Switched Rack PDU Specification
+# Model: GSPE APDU9953 (24 Outlets: 21x C13/C15 + 3x C19/C21, 230V 32A 1-Phase)
+# Reference: APC NetShelter 9000 Series (APDU9953 / APDU9941 Architecture)
+# ==============================================================================
+
+product:
+  name: "GSPE NetShelter 9000 Series Switched Rack PDU"
+  model: "APDU9953"
+  series: "NetShelter 9000 Switched"
+  brand: "GSPE"
+  sku: "GSPE-APDU9953-24OUT"
+  form_factor: "0U Vertical Rackmount"
+
+branding_palette:
+  primary: "#003674"       # GSPE Deep Navy
+  secondary: "#FAFFD8"     # GSPE Pale Cream
+  accent_green: "#00E676"  # LED Normal / Outlet On
+  accent_amber: "#FFB300"  # LED Warning / 100M LAN
+  accent_red: "#E53935"    # LED Alarm / Overload
+  chassis_body: "#14171E"  # Powder-coated Industrial Dark Steel
+  chassis_accent: "#1E222D"# Module Bezel Inset Dark Graphite
+  outlet_body: "#2A2E39"   # High-temp Polyamide Socket Housing
+  terminal_contacts: "#C59B27" # Brass/Phosphor Bronze Contacts
+  display_bg: "#0A0D14"    # OLED Display Screen Background
+
+electrical_ratings:
+  input_voltage: "230V AC Single-Phase (100-240V Range)"
+  input_frequency: "50/60 Hz"
+  max_input_current: "32A (Continuous derated: 32A IEC)"
+  total_power_capacity: "7360 VA (7.36 kW)"
+  input_connection:
+    type: "IEC 60309 32A 2P+E (Blue industrial plug)"
+    cord_length_mm: 3000.0
+    cord_diameter_mm: 20.0
+    entry: "Top chassis gland with threaded compression nut"
+  branch_protection:
+    breaker_count: 2
+    breaker_type: "Low-profile Hydraulic-Magnetic Rocker Breaker"
+    rating: "20A, 1-Pole"
+    operating_temp_rating: "60°C continuous"
+
+dimensions_mechanical:
+  height_total_mm: 1829.0
+  width_face_mm: 56.0
+  depth_chassis_mm: 46.0
+  depth_with_breakers_mm: 58.0
+  depth_with_pegs_mm: 72.0
+  chassis_wall_thickness_mm: 1.5
+  chassis_material: "Cold-rolled sheet steel, electrostatic powder-coat"
+  unit_weight_kg: 7.2
+
+receptacle_configuration:
+  total_outlets: 24
+  bank_count: 3
+  outlets_per_bank: 8
+  bank_distribution:
+    bank_1:
+      label: "Bank 1"
+      position: "Top Section (above controller)"
+      c13_c15_hybrid_count: 7   # Outlets 1-7
+      c19_c21_hybrid_count: 1   # Outlet 8
+      breaker: "Breaker 1 (top of bank)"
+    bank_2:
+      label: "Bank 2"
+      position: "Middle Section (below controller)"
+      c13_c15_hybrid_count: 7   # Outlets 9-15
+      c19_c21_hybrid_count: 1   # Outlet 16
+      breaker: "Shared / In-line Breaker 2"
+    bank_3:
+      label: "Bank 3"
+      position: "Bottom Section"
+      c13_c15_hybrid_count: 7   # Outlets 17-23
+      c19_c21_hybrid_count: 1   # Outlet 24
+      breaker: "Breaker 2 (between bank 2 & 3)"
+
+  outlet_geometry:
+    c13_c15_hybrid:
+      width_mm: 32.0
+      height_mm: 24.0
+      depth_recess_mm: 16.0
+      pitch_y_mm: 28.5
+      features:
+        - "C13 standard shroud + C15 bottom notch for high-temp 120°C cords"
+        - "Per-outlet LED indicator (Ø2.5mm green)"
+        - "Top retention spring slot for cord-locking"
+    c19_c21_hybrid:
+      width_mm: 42.0
+      height_mm: 28.0
+      depth_recess_mm: 18.0
+      orientation: "Horizontal layout"
+      features:
+        - "C19 horizontal blades + C21 high-temp notch"
+        - "Per-outlet LED indicator (Ø2.5mm green)"
+        - "Chamfered bezel with cord-lock clip slot"
+
+controller_nmc3:
+  name: "GSPE NMC3 Advanced Intelligent Management Module"
+  placement: "Center front face (between Bank 1 and Bank 2)"
+  height_mm: 210.0
+  width_mm: 52.0
+  display:
+    type: "Full-color Graphic OLED/LCD"
+    active_area_mm: [28.0, 28.0]
+    metering_accuracy: "±1% ANSI C12.1 Revenue Grade"
+  buttons:
+    count: 3
+    type: "Tactile sealed pushbuttons"
+    labels: ["Main", "▼ (Down)", "Select"]
+    diameter_mm: 7.0
+  status_leds:
+    count: 3
+    indicators:
+      - name: "Ok"
+        color: "#00E676"
+      - name: "Warning"
+        color: "#FFB300"
+      - name: "Overload"
+        color: "#E53935"
+  ports:
+    - name: "Universal I/O"
+      type: "RJ45 female (temperature/humidity environmental probe)"
+    - name: "Link A"
+      type: "RJ45 female (network port sharing up to 32 PDUs)"
+    - name: "Link B"
+      type: "RJ45 female (redundant ring cascading)"
+    - name: "Console"
+      type: "USB Micro-B / mini console CLI interface"
+    - name: "USB Host"
+      type: "USB Type-A female (firmware flash, Wi-Fi dongle)"
+    - name: "Network"
+      type: "1000BASE-T Gigabit RJ45 with dual speed/activity LEDs"
+  reset:
+    type: "Pinhole micro-switch 'R'"
+
+mounting_hardware:
+  system: "Toolless Rackmount Buttons / Pegs"
+  rear_brackets:
+    pad_count: 2
+    pad_dims_mm: [46.0, 75.0, 6.0]
+    peg_head_diameter_mm: 12.0
+    peg_shank_diameter_mm: 6.0
+    peg_spacing_center_mm: 1680.0
+  mounting_orientation: "Toolless keyhole insertion into standard server rack channels"

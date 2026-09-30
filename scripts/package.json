@@ -1,0 +1,20 @@
+{
+  "name": "pdu-web-assets",
+  "private": true,
+  "type": "module",
+  "description": "Builds lightweight web GLBs for showcase/ from the full-detail masters in exports/",
+  "scripts": {
+    "build:web": "sh build-web-glb.sh",
+    "verify:web": "node verify-web-glb.mjs",
+    "posters": "node make-posters.mjs",
+    "test:web": "node test-showcase.mjs",
+    "audit:web": "node audit-showcase.mjs"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.0",
+    "@gltf-transform/core": "^4.5.0",
+    "@gltf-transform/extensions": "^4.5.0",
+    "draco3dgltf": "^1.5.7",
+    "playwright": "^1.63.0"
+  }
+}
