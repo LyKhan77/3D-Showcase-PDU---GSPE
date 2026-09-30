@@ -107,7 +107,7 @@ for (const [file, first, others] of [['nmc3', ASSEMBLED, [['exploded', EXPLODED]
   const vsel = 'model-viewer[data-component-viewer]';
   const page = await open({ width: 1440, height: 900 }, `components/${file}.html`, vsel, file);
   await expectLoad(page, vsel, `${file}: load button`, () => page.locator('[data-load-3d]').click(), first);
-  await checkDisplayGlass(page, vsel, `${file}: initial model`);
+  if (file !== 'internal-busbars-pcb') await checkDisplayGlass(page, vsel, `${file}: initial model`); // NMC3 layer is hidden on that page
   if (file === 'nmc3') {
     const before = await glassAlpha(page);
     await page.locator('[data-layer="nmc3"]').uncheck();

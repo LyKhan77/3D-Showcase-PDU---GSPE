@@ -60,3 +60,12 @@ def test_generated_asset_contract():
         assert document and document['asset']['version'] == '2.0'
         names = ' '.join(node.get('name', '') for node in document.get('nodes', []))
         assert all(f'LAYER_{layer}' in names for layer in expected)
+
+
+if __name__ == "__main__":
+    # pytest is not installed here, so run the test_* functions directly; any failure raises and exits non-zero.
+    tests = [f for name, f in sorted(globals().items()) if name.startswith("test_") and callable(f)]
+    for test in tests:
+        test()
+        print("PASS", test.__name__)
+    print(f"{len(tests)}/{len(tests)} passed")

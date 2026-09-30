@@ -77,7 +77,7 @@ PBR_SPECS = {
         "metallic": 0.10,
         "roughness": 0.12,
         "emission": (0.0, 0.8, 0.3),
-        "emission_strength": 0.8
+        "emission_strength": 0.125  # exports as about (0, 0.10, 0.04); 0.8 lit the whole screen and washed out the cream menu text
     },
     "mat_plug_blue": {
         "color": (0.000, 0.070, 0.500, 1.0), # IEC 60309 32A Blue
@@ -310,6 +310,10 @@ def build_scene_for_mode(mode_name="assembled"):
     print(f"Exported GLB: {glb_path} ({os.path.getsize(glb_path)/1024:.1f} KB)")
 
 def main():
+    if bpy.app.background:
+        # A headless session starts with Camera, Cube and Light, and save_as_mainfile would keep them in the .blend.
+        # A live session (the MCP addon) must not be reset, so clear_scene() only removes what this script builds.
+        bpy.ops.wm.read_factory_settings(use_empty=True)
     os.makedirs(EXPORT_DIR, exist_ok=True)
     os.makedirs(BLENDER_DIR, exist_ok=True)
 

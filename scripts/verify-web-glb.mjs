@@ -52,6 +52,10 @@ function checkMaterials(doc, label) {
     if (glass.getBaseColorFactor()[3] >= 1) violations.push(`${label}: glass base-color alpha is opaque`);
   }
 
+  // A bright emissive screen washes out the cream menu text (0.64 did); keep it dim so the menu stays readable.
+  const screen = doc.getRoot().listMaterials().find(material => material.getName() === 'nmc3__nmc3_display__mat_lcd_screen');
+  if (screen && Math.max(...screen.getEmissiveFactor()) > 0.2) violations.push(`${label}: LCD emissive ${screen.getEmissiveFactor().map(v => v.toFixed(2)).join(', ')} is too bright`);
+
   for (const mesh of meshes.filter(mesh => mesh.getName() === 'nmc3__nmc3_display__mat_steel_metal')) {
     for (const primitive of mesh.listPrimitives()) {
       const position = primitive.getAttribute('POSITION');

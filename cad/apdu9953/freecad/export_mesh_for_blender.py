@@ -58,6 +58,10 @@ MAT_MAPPING = {
 
 # Preserve established assignments for source colours that overlap multiple
 # presentation palettes. All other colours use nearest registered colour.
+# These overrides win over MAT_MAPPING, so the entries (0.290, 0.318, 0.345) and
+# (0.227, 0.255, 0.286) listed under mat_steel_metal never apply as exact colours:
+# they resolve to mat_polyamide_dark. They stay in the steel list only because
+# removing them could change which material nearby colours resolve to.
 LEGACY_ASSIGNMENTS = {
     (0.080, 0.085, 0.095): "mat_chassis_powdercoat",
     (0.114, 0.133, 0.165): "mat_chassis_powdercoat",
