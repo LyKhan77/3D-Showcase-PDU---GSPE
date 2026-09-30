@@ -2,8 +2,8 @@
 # build_blender_scene.py — Pipeline PBR & Hierarchical GLB Export
 # APDU9953 NetShelter 9000 Switched Rack PDU
 # Menghasilkan 2 production GLB:
-#   1. showcase/gspe_pdu_apdu9953.glb (Assembled dengan hierarki 6 subsistem)
-#   2. showcase/gspe_pdu_apdu9953_exploded.glb (Exploded view untuk showcase)
+#   1. exports/apdu9953/glb/gspe_pdu_apdu9953.glb (Assembled dengan hierarki 6 subsistem)
+#   2. exports/apdu9953/glb/gspe_pdu_apdu9953_exploded.glb (Exploded view untuk showcase)
 # Dilengkapi PBR Principled BSDF & Auto-Smooth Shading.
 # =====================================================================
 import os
@@ -12,7 +12,7 @@ import math
 import bpy
 
 STAGING_BASE = "/Users/leekhan/project/3D-Model-PDU/temp/blender_staging_apdu9953"
-SHOWCASE_DIR = "/Users/leekhan/project/3D-Model-PDU/showcase"
+EXPORT_DIR   = "/Users/leekhan/project/3D-Model-PDU/exports/apdu9953/glb"
 BLENDER_DIR  = "/Users/leekhan/project/3D-Model-PDU/cad/apdu9953/blender"
 
 SUBSYSTEM_LABELS = [
@@ -50,6 +50,12 @@ PBR_SPECS = {
         "color": (0.300, 0.325, 0.360, 1.0), # Stainless steel #939BA4
         "metallic": 0.95,
         "roughness": 0.25,
+    },
+    "mat_glass_clear": {
+        "color": (0.700, 0.850, 0.900, 0.15),
+        "alpha": 0.15,
+        "metallic": 0.0,
+        "roughness": 0.05,
     },
     "mat_copper_busbars": {
         "color": (0.550, 0.260, 0.070, 1.0), # Copper #C58B49
@@ -138,16 +144,32 @@ PBR_SPECS = {
     },
 }
 
+# These four source groups retain their established presentation material.
+# The FreeCAD nearest-colour fallback can otherwise move them into a nearby
+# palette; import aliases merge those OBJ groups back into the legacy target.
+IMPORT_ALIASES = {
+    ("internal", "nmc3_pcb", "mat_polyamide_dark"): "mat_chassis_powdercoat",
+    ("nmc3", "nmc3_console", "mat_polyamide_dark"): "mat_chassis_powdercoat",
+    ("nmc3", "nmc3_usbhost", "mat_polyamide_dark"): "mat_chassis_powdercoat",
+    ("outlet_banks", "outlets", "mat_led_white"): "mat_gspe_cream",
+}
+
 def clear_scene():
-    bpy.ops.wm.read_factory_settings(use_empty=True)
+    # Keep the running MCP addon enabled when rebuilding through Blender GUI.
+    for obj in list(bpy.data.objects):
+        bpy.data.objects.remove(obj, do_unlink=True)
     for c in list(bpy.data.collections):
         bpy.data.collections.remove(c)
+    for mesh in list(bpy.data.meshes):
+        bpy.data.meshes.remove(mesh)
+    for material in list(bpy.data.materials):
+        bpy.data.materials.remove(material)
 
 def create_pbr_material(name, spec):
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
-    bsdf = nodes.get("Principled BSDF")
+    bsdf = next((node for node in nodes if node.type == "BSDF_PRINCIPLED"), None)
     if not bsdf:
         bsdf = nodes.new(type="ShaderNodeBsdfPrincipled")
 
@@ -157,9 +179,24 @@ def create_pbr_material(name, spec):
         bsdf.inputs["Metallic"].default_value = spec["metallic"]
     if "roughness" in spec:
         bsdf.inputs["Roughness"].default_value = spec["roughness"]
+    if "alpha" in spec and "Alpha" in bsdf.inputs:
+        bsdf.inputs["Alpha"].default_value = spec["alpha"]
     if "emission" in spec:
         bsdf.inputs["Emission Color"].default_value = (*spec["emission"], 1.0)
         bsdf.inputs["Emission Strength"].default_value = spec.get("emission_strength", 1.0)
+
+    if "alpha" in spec:
+        # Blender 5.2 renamed blend_method to surface_render_method. Read the
+        # enum before assigning so this remains compatible with nearby versions.
+        surface_prop = bpy.types.Material.bl_rna.properties.get("surface_render_method")
+        if surface_prop:
+            valid = set(surface_prop.enum_items.keys())
+            for value in ("BLENDED", "BLEND"):
+                if value in valid:
+                    mat.surface_render_method = value
+                    break
+        elif hasattr(mat, "blend_method"):
+            mat.blend_method = "BLEND"
 
     return mat
 
@@ -196,12 +233,14 @@ def build_scene_for_mode(mode_name="assembled"):
         group_empties[gid] = emp
 
     imported_count = 0
+    grouped_objects = {}
     # Impor semua file OBJ yang ada di staging_dir
     for fname in sorted(os.listdir(staging_dir)):
         if not fname.endswith(".obj") or "__" not in fname:
             continue
 
-        layer, role, mat_id = fname[:-4].split("__", 2)
+        layer, role, source_mat_id = fname[:-4].split("__", 2)
+        mat_id = IMPORT_ALIASES.get((layer, role, source_mat_id), source_mat_id)
         obj_path = os.path.join(staging_dir, fname)
         if os.path.getsize(obj_path) == 0:
             continue
@@ -222,7 +261,7 @@ def build_scene_for_mode(mode_name="assembled"):
         else:
             target_obj = sel[0]
 
-        target_obj.name = f"LAYER_{layer}__ROLE_{role}__MAT_{mat_id}"
+        target_obj.name = f"LAYER_{layer}__ROLE_{role}__MAT_{mat_id}__PART_{imported_count}"
         # Pindahkan ke root collection
         for c in list(target_obj.users_collection):
             c.objects.unlink(target_obj)
@@ -248,7 +287,24 @@ def build_scene_for_mode(mode_name="assembled"):
         if layer in group_empties:
             target_obj.parent = group_empties[layer]
 
+        grouped_objects.setdefault((layer, role, mat_id), []).append(target_obj)
         imported_count += 1
+
+    # Merge aliased source groups with their established target group so each
+    # exported mesh has one stable material-qualified name.
+    for (layer, role, mat_id), objects in grouped_objects.items():
+        if not objects:
+            continue
+        for obj in bpy.context.selected_objects:
+            obj.select_set(False)
+        for obj in objects:
+            obj.select_set(True)
+        bpy.context.view_layer.objects.active = objects[0]
+        if len(objects) > 1:
+            bpy.ops.object.join()
+        target_obj = objects[0]
+        target_obj.name = f"LAYER_{layer}__ROLE_{role}__MAT_{mat_id}"
+        target_obj.data.name = f"{layer}__{role}__{mat_id}"
 
     print(f"Total {imported_count} meshes linked across 7 subsystems.")
 
@@ -258,7 +314,7 @@ def build_scene_for_mode(mode_name="assembled"):
     print(f"Saved .blend: {blend_path} ({os.path.getsize(blend_path)/1024:.1f} KB)")
 
     # Ekspor GLB
-    glb_path = os.path.join(SHOWCASE_DIR, f"gspe_pdu_apdu9953{'_exploded' if mode_name=='exploded' else ''}.glb")
+    glb_path = os.path.join(EXPORT_DIR, f"gspe_pdu_apdu9953{'_exploded' if mode_name=='exploded' else ''}.glb")
     bpy.ops.export_scene.gltf(
         filepath=glb_path,
         export_format="GLB",
@@ -272,7 +328,7 @@ def build_scene_for_mode(mode_name="assembled"):
     print(f"Exported GLB: {glb_path} ({os.path.getsize(glb_path)/1024:.1f} KB)")
 
 def main():
-    os.makedirs(SHOWCASE_DIR, exist_ok=True)
+    os.makedirs(EXPORT_DIR, exist_ok=True)
     os.makedirs(BLENDER_DIR, exist_ok=True)
 
     # 1. Assembled model

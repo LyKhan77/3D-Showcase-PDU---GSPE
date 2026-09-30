@@ -30,6 +30,53 @@ function stats(doc) {
   return out;
 }
 
+function accessorBounds(accessor) {
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < accessor.getCount(); i++) {
+    const v = accessor.getElement(i, []);
+    for (let d = 0; d < 3; d++) { min[d] = Math.min(min[d], v[d]); max[d] = Math.max(max[d], v[d]); }
+  }
+  return { min, max };
+}
+
+function checkMaterials(doc, label) {
+  const violations = [];
+  const meshes = doc.getRoot().listMeshes();
+  const badCord = meshes.filter(mesh => /^power__.*__mat_lcd_screen$/.test(mesh.getName()));
+  if (badCord.length) violations.push(`${label}: LCD material on power mesh: ${badCord.map(m => m.getName()).join(', ')}`);
+
+  const glass = doc.getRoot().listMaterials().find(material => material.getName() === 'nmc3__nmc3_display__mat_glass_clear');
+  if (!glass) violations.push(`${label}: missing nmc3__nmc3_display__mat_glass_clear material`);
+  else {
+    if (glass.getAlphaMode() !== 'BLEND') violations.push(`${label}: glass alphaMode is ${glass.getAlphaMode()}`);
+    if (glass.getBaseColorFactor()[3] >= 1) violations.push(`${label}: glass base-color alpha is opaque`);
+  }
+
+  for (const mesh of meshes.filter(mesh => mesh.getName() === 'nmc3__nmc3_display__mat_steel_metal')) {
+    for (const primitive of mesh.listPrimitives()) {
+      const position = primitive.getAttribute('POSITION');
+      if (!position) continue;
+      const { min, max } = accessorBounds(position);
+      const x = max[0] - min[0], y = max[1] - min[1];
+      if (Math.abs(x - 0.0284) <= 0.0005 && Math.abs(y - 0.0284) <= 0.0005) {
+        violations.push(`${label}: opaque steel display lens bbox ${(x * 1000).toFixed(2)} x ${(y * 1000).toFixed(2)} mm`);
+      }
+    }
+  }
+  return violations;
+}
+
+if (process.argv.includes('--masters')) {
+  let bad = 0;
+  for (const n of ['gspe_pdu_apdu9953', 'gspe_pdu_apdu9953_exploded']) {
+    const violations = checkMaterials(await io.read(`../exports/apdu9953/glb/${n}.glb`), n);
+    if (violations.length) violations.forEach(v => console.log(`VIOLATION ${v}`));
+    else console.log(`${n}: material invariants passed`);
+    bad += violations.length;
+  }
+  process.exit(bad ? 1 : 0);
+}
+
 let bad = 0;
 for (const n of ['gspe_pdu_apdu9953', 'gspe_pdu_apdu9953_exploded']) {
   const a = stats(await io.read(`../exports/apdu9953/glb/${n}.glb`));

@@ -37,7 +37,8 @@ MAT_MAPPING = {
     "mat_gspe_navy":          [GSPE_NAVY],
     "mat_gspe_cream":         [GSPE_CREAM, (0.957, 0.957, 0.949)],
     "mat_polyamide_dark":     [POLY_DARK, BAKELITE_BLK, (0.255, 0.271, 0.290), (0.114, 0.133, 0.165), (0.161, 0.176, 0.196), (0.216, 0.231, 0.251), (0.125, 0.145, 0.173), (0.153, 0.173, 0.192), (0.141, 0.161, 0.188), (0.145, 0.176, 0.208), (0.271, 0.302, 0.341)],
-    "mat_steel_metal":        [METAL_STEEL, (0.290, 0.318, 0.345), (0.227, 0.255, 0.286), (0.733, 0.757, 0.776), (0.700, 0.850, 0.900)],
+    "mat_steel_metal":        [METAL_STEEL, (0.290, 0.318, 0.345), (0.227, 0.255, 0.286), (0.733, 0.757, 0.776)],
+    "mat_glass_clear":        [(0.700, 0.850, 0.900)],
     "mat_copper_busbars":     [COPPER],
     "mat_brass_gold":         [BRASS_GOLD],
     "mat_pcb_green":          [PCB_GREEN],
@@ -55,13 +56,35 @@ MAT_MAPPING = {
     "mat_rubber_black":       [(0.045, 0.050, 0.058)],
 }
 
-def color_matches(c1, c2, tol=0.03):
-    return all(abs(a - b) <= tol for a, b in zip(c1, c2))
+# Preserve established assignments for source colours that overlap multiple
+# presentation palettes. All other colours use nearest registered colour.
+LEGACY_ASSIGNMENTS = {
+    (0.080, 0.085, 0.095): "mat_chassis_powdercoat",
+    (0.114, 0.133, 0.165): "mat_chassis_powdercoat",
+    (0.125, 0.145, 0.173): "mat_chassis_powdercoat",
+    (0.133, 0.153, 0.176): "mat_chassis_powdercoat",
+    (0.141, 0.161, 0.188): "mat_chassis_powdercoat",
+    (0.133, 0.169, 0.161): "mat_polyamide_dark",
+    (0.290, 0.318, 0.345): "mat_polyamide_dark",
+    (0.227, 0.255, 0.286): "mat_polyamide_dark",
+    (0.950, 0.950, 0.950): "mat_gspe_cream",
+}
 
 def find_mat_name(color):
-    for mat_name, colors in MAT_MAPPING.items():
-        if any(color_matches(color, c) for c in colors):
+    for source, mat_name in LEGACY_ASSIGNMENTS.items():
+        if all(abs(a - b) <= 1e-9 for a, b in zip(color, source)):
             return mat_name
+    best_name = None
+    best_distance = float("inf")
+    for mat_name, colors in MAT_MAPPING.items():
+        for registered in colors:
+            distance = max(abs(a - b) for a, b in zip(color, registered))
+            if distance <= 0.03 and distance < best_distance:
+                best_name = mat_name
+                best_distance = distance
+    if best_name is not None:
+        return best_name
+    print(f"Warning: unmatched material color {tuple(round(c, 6) for c in color)}; defaulting to mat_steel_metal")
     return "mat_steel_metal"
 
 def export_state(mode_name, explode=0.0):
